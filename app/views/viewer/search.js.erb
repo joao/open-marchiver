@@ -1,0 +1,17 @@
+
+
+// Check if search is already present
+if ( $('#search_container #search').length ) {
+
+  // If search is present remove it
+  $('#search_container').empty();
+  // Show map again
+  $('#map_container').show();
+
+} else {
+
+  // Show search
+  $("<%=j render(:partial => 'search') %>")
+    .prependTo("#search_container")
+    .show();
+}

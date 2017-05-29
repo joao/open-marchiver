@@ -1,0 +1,25 @@
+
+# MySQL
+# Using gem 'mysql2'
+development:
+  adapter: mysql2
+  encoding: utf8
+  reconnect: false
+  database: marchiver_development
+  pool: 10
+  username: root
+  password: XXXXXXXXXXXXXXXX
+  host: localhost
+  port: 3306
+
+production:
+  adapter: mysql2
+  encoding: utf8
+  reconnect: false
+  database: marchiver_production
+  pool: 20
+  username: root
+  password: XXXXXXXXXXXXXXXX
+  host: localhost
+  port: 330
+

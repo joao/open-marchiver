@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+  <head>
+
+    <%= display_meta_tags %>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+    <%= csrf_meta_tags %>
+
+    <!-- Stylesheets -->
+    <%= stylesheet_link_tag 'application', params[:controller], media: 'all' %>
+    
+    <!-- JavaScript -->
+    <%= Gon::Base.render_data %>
+    <%= javascript_include_tag 'application', params[:controller] %>
+
+  </head>
+
+  <body id="corrector_layout">
+    <%= yield %>
+  </body>
+</html>

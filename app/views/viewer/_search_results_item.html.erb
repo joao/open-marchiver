@@ -1,0 +1,17 @@
+  <!-- X results -->
+  <% @results.each do |result| %>
+
+      <% result_link = "/#{result.issue.id}/#{result.number}?highlighted_strings=#{result.search_highlights[:text].html_safe.scan(/<em>(.*?)<\/em>/).map{|str| str[0].downcase}.uniq.join(',')}" %>
+      <div class="result col-md-3 col-md-offset-0 col-sm-4 col-sm-offset-0 col-xs-12 col-xs-offset-0">
+        <div class="page_thumbnail">
+          <%= link_to image_tag(result.get_thumbnail_url), result_link %>
+        </div>
+        <h5><%= l(result.issue.date, format: "%Y, %B") %></h5>
+        <p class="page_number"> <%= t('viewer.page') %> <%= result.number %></p>
+        <p class="result_text">
+          <%= result.search_highlights[:text].html_safe %>... <span class="read_more"><%= link_to(t('viewer.read_more'), result_link) %></span>
+        </p>
+      </div>
+
+  <% end %>
+

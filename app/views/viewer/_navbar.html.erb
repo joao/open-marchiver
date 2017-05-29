@@ -1,0 +1,55 @@
+<!-- Fixed navbar -->
+<nav class="navbar navbar-inverse navbar-fixed-top">
+  <div class="container">
+
+    <!-- Title at the center -->
+    <div class="navbar-header">
+      <div class="navbar-brand">
+          <h1><a href="/"><%= ENV['ARCHIVE_NAME'] %></a></h1>
+      </div>
+    </div>
+
+    <!-- Mobile -->
+    <div class="mobile_nav">
+      <!-- Issue Nav -->
+      <%= link_to '#', class: 'btn navbar-btn pull-left visible-xs issue-nav_toggle' do %>
+        <span class="glyphicon glyphicon-th-list" aria-hidden="true"></span>
+      <% end %>
+
+      <%= link_to '/search', class: 'btn navbar-btn pull-right visible-xs search_toggle' , remote: true do %>
+        <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+      <% end %>
+    </div>
+
+
+    <!-- Desktop -->
+    <!-- Publication navigation -->
+    <div class="mobile_nav_issue_nav"> <!-- class to enable nav overlay -->
+      <ul class="nav navbar-nav navbar-left">
+         <h4><%= t('viewer.select_issue') %></h4>
+         <div class="navigation">
+            
+            <select class="publications ui dropdown">
+            </select>
+            <select class="years ui dropdown">
+            </select>
+            <select class="months ui dropdown">
+            </select>
+            <select class="days ui dropdown">
+            </select>
+        
+        </div>
+      </ul>
+    </div>
+
+    <!-- Search -->
+    <ul class="nav navbar-nav navbar-right">
+      <li class="search_toggle">
+        <%= link_to '/search', remote: true do %>
+          <span class="glyphicon glyphicon-search" aria-hidden="true"></span><%= t('viewer.search') %>
+        <% end %>
+      </li>
+    </ul>
+
+  </div>
+</nav>

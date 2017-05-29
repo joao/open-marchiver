@@ -1,0 +1,402 @@
+/*
+ *
+ *= require leaflet
+ *= require Leaflet.EasyButton
+ *= require bootstrap_import
+ *= require x-editable/dist/bootstrap3-editable/css/bootstrap-editable
+ *= require_self
+ */
+
+
+// .navbar-brand {
+//   padding: 0px; /* firefox bug fix */
+// }
+// .navbar-brand>img {
+//   height: 100%;
+//   padding: 15px; /* firefox bug fix */
+//   width: auto;
+// }
+
+
+
+.navbar-brand.logo {
+  padding: 0px;
+}
+.navbar-brand.logo >img {
+  height: 100%;
+  width: auto;
+  padding: 5px 15px;
+}
+
+// Set max-width to 970px
+@media (min-width: 1200px) {
+    .container{
+        max-width: 970px;
+    }
+}
+
+
+.container.corrector {
+  margin-top: 51px;
+}
+
+.container.corrector.text_corrector {
+  margin-bottom: 40px;
+}
+
+.container.corrector.text_corrector .row {
+}
+
+.container.corrector #corrector_header {
+  margin-top: 40px;
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.corrector.text_corrector #viewer_col,
+.corrector.text_corrector #editor_col {
+  margin-top: 0px;
+  margin-left: 0px;
+  margin-right: 0px;
+  padding: 0px;
+  border: 1px solid black;
+}
+
+/*
+ * Corrector Viewer
+ */
+
+#map {
+  /*width: 440px;*/
+  width: 100%;
+  height: 650px;
+  background-color: #222;
+  position: relative;
+  z-index: 10;
+}
+
+
+.corrector.text_corrector #map_container {
+ // border: 1px solid black;
+ }
+
+
+/*
+ * Corrector Edit
+ */
+
+
+.corrector.text_corrector #editor_col {
+  background-color: #f0f0f0;
+  padding: 10px;
+  border: 1px solid #CCC;
+  height: 100%;
+}
+
+#editor_col .lines_info {
+  margin-bottom: 20px;
+}
+
+#editor_col .form_send {
+
+}
+
+.corrector.text_corrector #editor_col .issue_info {
+  display: block;
+  margin-bottom: 25px;
+}
+
+.corrector.text_corrector #editor_col .issue_info p:first-of-type {
+  font-weight: bold;
+}
+
+.corrector.text_corrector #editor_col .text_correct {
+  margin-bottom: 25px;
+}
+
+.corrector.text_corrector div.user_correction {
+  background-color: #FFF;
+  padding: 10px;
+  border: 1px solid #CCC;
+  height: 446px;
+  overflow: scroll;
+  display: block;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 16px;
+  line-height: 1.4em;
+}
+
+div.user_correction .line {
+  display: none;
+}
+
+
+.corrector.text_corrector div.user_correction .line_inline_edit {
+  width: 330px;
+  font-size: 14px;
+  color: #333;
+}
+
+.corrector.text_corrector div.user_correction .line.editable.editable-click {
+  border-bottom: 0;
+}
+
+
+.corrector.text_corrector div.user_correction .line a, 
+.corrector.text_corrector div.user_correction .line.editable a {
+  color: #111;
+}
+
+.corrector.text_corrector div.user_correction .line.editable-unsaved,
+.corrector.text_corrector div.user_correction .line.editable-empty, {
+  background-color: #FFFF80 !important;
+}
+
+
+.form_send {
+
+}
+
+/* Button links */
+
+.corrector #submission_success button a {
+  color: #FFF;
+  text-decoration: none
+}
+
+
+/* Button spinner */
+
+.gly-spin {
+  display: inline-block;
+  opacity: 0;
+  max-width: 0;
+  margin-right: 0px;
+
+  -webkit-transition: opacity 0.25s, max-width 0.45s; 
+  -moz-transition: opacity 0.25s, max-width 0.45s;
+  -o-transition: opacity 0.25s, max-width 0.45s;
+  transition: opacity 0.25s, max-width 0.45s;
+}
+
+.gly-spin.active {
+  -webkit-animation: spin 2s infinite linear;
+  -moz-animation: spin 2s infinite linear;
+  -o-animation: spin 2s infinite linear;
+  animation: spin 2s infinite linear;
+  opacity: 1;
+  max-width: 50px;
+  margin-right: 10px;
+}
+
+@-moz-keyframes spin {
+  0% {
+    -moz-transform: rotate(0deg);
+  }
+  100% {
+    -moz-transform: rotate(359deg);
+  }
+}
+@-webkit-keyframes spin {
+  0% {
+    -webkit-transform: rotate(0deg);
+  }
+  100% {
+    -webkit-transform: rotate(359deg);
+  }
+}
+@-o-keyframes spin {
+  0% {
+    -o-transform: rotate(0deg);
+  }
+  100% {
+    -o-transform: rotate(359deg);
+  }
+}
+@keyframes spin {
+  0% {
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  100% {
+    -webkit-transform: rotate(359deg);
+    transform: rotate(359deg);
+  }
+}
+
+
+/* *************************** */
+
+.corrector.text_corrector #submission_warning {
+}
+
+
+
+
+.modal-dialog {
+  padding-top: 20%;
+}
+
+.modal-dialog .modal-header {
+
+}
+
+.modal-header-success {
+    text-align: center;
+    color:#fff;
+    padding:9px 15px;
+    border-bottom:1px solid #eee;
+    background-color: #5cb85c;
+    -webkit-border-top-left-radius: 5px;
+    -webkit-border-top-right-radius: 5px;
+    -moz-border-radius-topleft: 5px;
+    -moz-border-radius-topright: 5px;
+     border-top-left-radius: 5px;
+     border-top-right-radius: 5px;
+}
+
+.modal-header-warning {
+  text-align: center;
+  color:#fff;
+  padding:9px 15px;
+  border-bottom:1px solid #eee;
+  background-color: #d9534f;
+  -webkit-border-top-left-radius: 5px;
+  -webkit-border-top-right-radius: 5px;
+  -moz-border-radius-topleft: 5px;
+  -moz-border-radius-topright: 5px;
+   border-top-left-radius: 5px;
+   border-top-right-radius: 5px;
+}
+
+.modal-dialog .h5.modal-title {
+  display: inline-block;
+  color: #FFF;
+}
+
+.modal-dialog .modal-footer {
+  text-align: center;
+}
+
+
+/*
+ * Corrector Score page
+ */
+
+#score_header {
+  margin-top: 40px;
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+#score_header h1 {
+  font-weight: bold;
+}
+
+#score_boards {
+
+}
+
+#score_boards .panel-title {
+  text-align: center;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+#score_boards .panel-body {
+  padding: 0
+}
+
+#score_boards table {
+  margin-bottom: 0
+}
+
+#score_boards table td.position {
+  width: 40px;
+  text-align: right;
+  font-weight: bold;
+  font-size: 16px;
+  color: #111;
+}
+
+#score_boards table td h5 {
+  font-weight: bold;
+  font-size: 16px;
+  margin-bottom: 2px;
+}
+
+
+
+/*
+ * Corrector Profile page
+ */
+
+#profile #profile_header {
+
+}
+
+#profile_header h1 {
+  margin-top: 40px;
+  text-align: center;
+  margin-bottom: 40px;
+
+}
+
+
+/*
+ * Corrector Help page
+ */
+
+#help #help_header {
+
+}
+
+#help_header h1 {
+  margin-top: 40px;
+  text-align: center;
+  margin-bottom: 40px;
+
+}
+
+/*
+ * Mobile
+ */
+
+/* Disable fixed map viewer when on mobile */
+@media (max-width: 970px) {
+    .affix {
+        position: relative;
+    }
+}
+
+/*
+ * Vendor overrides
+ */
+
+/* x-editable loading gif */
+.editableform-loading {
+    /*background: url('../assets/loading.gif') center center no-repeat;  */
+}
+
+.glyphicon.fast-right-spinner {
+    -webkit-animation: glyphicon-spin-r 1s infinite linear;
+    animation: glyphicon-spin-r 1s infinite linear;
+}
+
+#mobile_warning {
+  display: none;
+}
+
+@media screen and (max-width: 740px) {
+  #mobile_warning {
+    display: block;
+  }
+
+  #viewer_col {
+    display: none;
+  }
+
+  #editor_col {
+    display: none;
+  }
+}

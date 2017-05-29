@@ -1,0 +1,49 @@
+
+<div class="container" id="login">
+  <div class="row">
+    <div class="col-md-4 col-md-offset-4">
+
+    <!-- Logo -->
+    <div class="intro">
+      <%= image_tag('logo_marchiver.svg', size: "112x112", class: "center-block") %>
+      <h1>Marchiver</h1>
+      <!--<p>You can place some text here, instructing the user.</p>-->
+    </div>
+
+
+    <!-- Normal login -->
+    <%= form_for(resource, as: resource_name, url: session_path(resource_name)) do |f| %>
+      <div class="field">
+        <%= f.label :email %>
+        <%= f.email_field :email, autofocus: true %>
+      </div>
+
+      <div class="field">
+        <%= f.label :password %>
+        <%= f.password_field :password, autocomplete: "off" %>
+      </div>
+
+      <% if devise_mapping.rememberable? -%>
+        <div class="field">
+          <%= f.check_box :remember_me %>
+          <%= f.label :remember_me %>
+        </div>
+      <% end -%>
+
+      <div class="actions">
+        <%= f.submit "#{t('login')}", class: 'btn btn-primary' %>
+      </div>
+    <% end %>
+
+    <!-- Facebook login -->
+    <p class="facebook_login">
+      <%- if devise_mapping.omniauthable? %>
+        <%- resource_class.omniauth_providers.each do |provider| %>
+          <%= link_to "#{t('login_via')} #{OmniAuth::Utils.camelize(provider)}", omniauth_authorize_path(resource_name, provider), class: "btn btn-primary" %>
+        <% end -%>
+      <% end -%>
+    </p>
+
+    </div>
+  </div>
+</div>

@@ -1,0 +1,16 @@
+    <!-- Search results list -->
+    <% if @results.size != 0 %>
+    <div class="search_results_list infinite_results container">
+      <div class="row">
+
+        <div class="results_append">
+          <%= render :partial => 'search_results_item', :object => @results %>
+        </div>
+
+        <div class="search_pagination">
+        </div>
+      
+      </div>
+    </div>
+
+    <% end %>

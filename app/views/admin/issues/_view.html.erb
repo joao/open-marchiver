@@ -1,0 +1,305 @@
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.0.3/dist/leaflet.js"></script>
+
+<script type="text/javascript">
+    /*
+   * leaflet plugin for plain image map projection
+   * @copyright 2015 commenthol
+   * @license MIT
+   */
+
+  /* globals L */
+  /*
+   * L.RasterCoords
+   * @param {L.map} map - the map used
+   * @param {Array} imgsize - [ width, height ] image dimensions
+   * @param {Number} [tilesize] - tilesize in pixels. Default=256
+   */
+  L.RasterCoords = function (map, imgsize, tilesize) {
+    this.map = map;
+    this.width = imgsize[0];
+    this.height = imgsize[1];
+    this.tilesize = tilesize || 256;
+    this.zoom = this.zoomLevel();
+  };
+
+  L.RasterCoords.prototype = {
+    /*
+     * calculate accurate zoom level for the given image size
+     */
+    zoomLevel: function() {
+      return Math.ceil(
+            Math.log(
+              Math.max(this.width, this.height)/
+              this.tilesize
+            )/Math.log(2)
+          );
+    },
+    /*
+     * unproject `coords` to the raster coordinates used by the raster image projection
+     * @param {Array} coords - [ x, y ]
+     * @return {L.LatLng} - internal coordinates
+     */
+    unproject: function(coords) {
+      return this.map.unproject(coords, this.zoom);
+    },
+    /*
+     * project `coords` back to image coordinates
+     * @param {Array} coords - [ x, y ]
+     * @return {L.LatLng} - image coordinates
+     */
+    project: function(coords) {
+      return this.map.project(coords, this.zoom);
+    },
+    /*
+     * sets the max bounds on map
+     */
+    setMaxBounds: function() {
+      var southWest = this.unproject([0, this.height]);
+      var northEast = this.unproject([this.width, 0]);
+      this.map.setMaxBounds(new L.LatLngBounds(southWest, northEast));
+    }
+  };
+
+
+
+// Pages navigation
+var number_of_pages = <%= issue.pages.size %>;
+var pages_width = <%= issue.pages.first.width %>;
+var pages_height = <%= issue.height %>
+var page_spacing = 100;
+var current_page = 1;
+
+function draw_map(issue) {
+  var minZoom = <%= issue.minZoom %>,
+    maxZoom = <%= issue.maxZoom %>,
+    img = [
+      <%= issue.width %>,  // original width of image
+      <%= issue.height %>  // original height of image
+    ];
+
+    // create the map
+    map = L.map('issue_viewer',{
+        minZoom: minZoom, // minZoom is the default, but it is too much
+        maxZoom: maxZoom,
+        zoomControl: false,
+        attributionControl: false,
+        zoomSnap: 0.01,
+        zoomDelta: 1
+    });
+
+    // Zoom on the top right corner
+    new L.Control.Zoom({ position: 'topright' }).addTo(map);
+
+    // assign map and image dimensions
+    var rc = new L.RasterCoords(map, img);
+
+    //var mapSize = map.getSize();
+    //rc.setMaxBounds();
+
+    // Variable default zoomLevel
+    var setZoomLevel;
+    // Calculate zoom acording to width and height relationship of the original appended image
+    var zoomCalc = img[0]/img[1];
+    //console.log(zoomCalc);
+
+    if (zoomCalc >= 30) {
+      setZoomLevel = 7
+    } else if (zoomCalc >= 25 && zoomCalc < 30) {
+      setZoomLevel = 6
+    } else if (zoomCalc >= 20 && zoomCalc < 25) {
+      setZoomLevel = 6
+    } else if (zoomCalc >= 14 && zoomCalc < 20) {
+      setZoomLevel = 6
+    } else if (zoomCalc >= 10 && zoomCalc < 15) {
+      setZoomLevel = 5
+    } else if (zoomCalc >= 5 && zoomCalc < 10) {
+      setZoomLevel = 4
+    } else {
+      setZoomLevel = 3
+    }
+    //console.log(setZoomLevel);
+
+
+    // Set bounds
+    // For the content itself, as to not request non-existent tiles
+    var bottomLeft = rc.unproject([ 0, img[1] ]); // southWest
+    var topRight = rc.unproject([ img[0], 0] ); // northEast
+    var bounds = L.latLngBounds(bottomLeft, topRight);
+
+    tiles_directory = 'https://<%= ENV['AWS_S3_BUCKET'] %>.s3.amazonaws.com/tiles/' + issue
+    //tiles_directory = '/tiles/' + issue 
+    tiles_format = '/{z}/{y}/{x}.png'
+
+    // Load tile layer
+    L.tileLayer( tiles_directory + tiles_format, {
+      noWrap: true,
+      bounds: bounds,
+    }).addTo(map);
+
+    // Page navigation prototype
+    L.go_to_page = function(page_number) {
+      map.setView(rc.unproject([
+        ( (pages_width * (parseInt(page_number) - 1)) + (page_spacing * (parseInt(page_number) - 1)) )
+        , img[1]/2]), map.getZoom(), {
+          "animate": true,
+          "pan": {
+            "duration": 0.5
+          }
+        }
+        );
+    }
+
+    // set the view on the center of the page append
+    //map.setView(rc.unproject([img[0]/2, img[1]/2]), 6);
+    //map.setView(rc.unproject([1, img[1]/2]), setZoomLevel);
+    map.setView(rc.unproject([0, img[1]/2]), setZoomLevel);
+
+
+    // Bounds fix
+    // map.on('moveend', function(e) {
+    //   map_height = map.getSize().y;
+    //   map_bounds = map.getBounds();
+    //   map_top_position = map.latLngToLayerPoint(map_bounds.getNorthEast()).y;
+    //   //console.log(map.latLngToContainerPoint(map_bounds.getNorthEast()) );
+    //   //console.log(map.latLngToContainerPoint(map_bounds.getNorthWest()) );
+    //   //console.log(unproject(map.getSize()));
+
+    //   if (map_top_position > map_height ) {
+
+    //     // map.panBy(new L.Point(0, 200), {
+    //     //   "animate": true,
+    //     //   "pan": {
+    //     //     "duration": 0.2
+    //     //   }
+    //     // });
+
+    //     map.setView(rc.unproject([1, img[1]/2]), map.getZoom(), {
+    //       "animate": true,
+    //       "pan": {
+    //         "duration": 0.5
+    //       }
+    //     });
+
+    //   }
+
+    // });
+
+
+    // Debug Lat Lon issues
+    // map.on('click', function(e) {
+    //   // Current lat/lon
+    //   console.log("Lat, Lon : " + e.latlng.lat + ", " + e.latlng.lng)
+    //   // Current width and height in pixels
+    //   console.log("Width, Height: " + rc.project([e.latlng.lat,e.latlng.lng]) )
+    // });
+
+
+    // map.on("moveend", function () {
+    //   console.log(map.getCenter().toString());
+    // });
+
+    // Debug popup marker
+    // var layerBounds = L.layerGroup([
+    //     L.marker(rc.unproject([0,0])),//.bindPopup('[0,0]'),
+    //     L.marker(rc.unproject([1810,0])),
+    //     L.marker(rc.unproject([1810,2560])),
+    //     L.marker(rc.unproject([0,2560])),
+    //     //L.marker(rc.unproject(img)).bindPopup(JSON.stringify(img))
+    // ]);
+    // map.addLayer(layerBounds);
+
+    // var rectangle = L.rectangle([
+    //   rc.unproject([0,0]),
+    //   rc.unproject([pages_width,0]),
+    //   rc.unproject([0,pages_height]),
+    //   rc.unproject([pages_width,pages_height])
+    // ], {
+    //   //color: "red",
+    //   //weight: 2,
+    //   className: "rect"
+    // }).addTo(map);
+
+
+}; // End of draw map function
+
+// On Document Ready
+$( document ).ready(function() {
+  draw_map(<%= issue.id %>)
+
+  // Page Navigation
+
+  // Previous page
+  $('button#previous_page').click(function() {
+    if (current_page != 1) {
+      current_page = parseInt(current_page) - 1;
+      L.go_to_page(current_page);
+      $('input#current_page').val(current_page);
+    };
+  });
+
+  // Next Page
+  $('button#next_page').click(function() {
+    if (current_page != number_of_pages) {
+      current_page = parseInt(current_page) + 1;
+      L.go_to_page(current_page);
+      $('input#current_page').val(current_page);
+    };
+  });
+
+  // Input page number
+  $('input#current_page').keypress(function(e) {
+    if(e.which == 13) {
+      input_page = $(this).val();
+      // if the input value is a valid page
+      if (input_page >= 1 && input_page <= number_of_pages ) {
+        current_page = parseInt(input_page);
+        L.go_to_page(current_page);
+        $(this).val(current_page);
+      } else {
+        // return the value to the current page value
+        $(this).val(current_page);
+      }
+    };
+  });
+
+}); // End of Document Ready
+
+</script>
+
+<style type="text/css">
+  #page_navigation {
+    width: 100%;
+    text-align: center;
+  }
+
+  #issue_viewer {
+    width: 100%;
+    height: 600px;
+    background-color: #222;
+  }
+
+  button {
+    margin-bottom: 20px;
+    outline: none;
+  }
+
+  input#current_page {
+    width: 20px;
+    font-size: 16px;
+    color: #666;
+    text-align: right;
+    outline: none;
+  }
+
+
+</style>
+
+<div id="page_navigation">
+  <h3>Page <input type="value" value="1" id="current_page"> of <%= issue.pages.size %></h3>
+  <button type="button" id="previous_page">Previous Page</button><button type="button" id="next_page">Next Page</button>
+</div>
+
+<div id="issue_viewer">
+
+</div>

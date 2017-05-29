@@ -1,0 +1,56 @@
+
+// Append data
+
+// On first load
+<% if (@results.current_page == 1) %>
+
+    // Update counter
+    $('.search_results_info .results_count').html("<%=j render(:partial => 'search_results_count', :object => @results) %>")
+
+    // Add results
+    // But remove previous results first if they exist
+    $(".search_results_list").remove(); 
+    $(".search_results").append("<%=j render(:partial => 'search_results_list', :object => @results) %>")
+
+    <% if @results.count != 0 %>
+      $('#map_container').hide();
+    <% end %>
+
+
+    $(function(){
+
+    // Infinite loading search results
+    $('.search_results_list.infinite_results').infinitePages({
+      //debug: true,
+      buffer: 300,
+      //context: '.search_results',
+      navSelector: 'a[rel=next]',
+      loading: function() {
+        //return $(this).text("<%= t('viewer.loading_next_page') %>");
+        //return $(this).html("<div class='loader'></div>");
+      },
+      error: function() {
+        return $(this).button("<%= t('viewer.loading_next_page_error') %>");
+      }
+    });
+
+
+  });
+
+// Support for infinite pages
+<% else %>
+  // Infinite pages
+  $(".search_results_list.infinite_results .results_append").append("<%=j render(:partial => 'search_results_item', :object => @results) %>")
+<% end %>
+
+// Update pagination link
+<% if @results.last_page? %>
+  $('.search_pagination').html(""); // Nothing else to load
+<% else %>
+  $('.search_pagination').html("<%=j link_to_next_page(@results, 'Next Page', :remote => true) %>");
+  // Place the spinner, instead of words
+  setTimeout(function(){
+    $('.search_pagination a').html("<div class='loader'></div>") // Add Spinner
+   }, 500); 
+<% end %>
+

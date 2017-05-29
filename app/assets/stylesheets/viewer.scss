@@ -1,0 +1,405 @@
+/* Place all the styles related to the viewer controller here.
+ * They will automatically be included in application.css.
+ */
+
+/*
+ *= require leaflet
+ *= require Leaflet.EasyButton
+ *
+ *= require bootstrap_import
+ *= require semantic-ui-dropdown
+ *= require search
+ *= require_self
+ *
+ */
+
+
+ /*
+ - Map
+ - Navigation
+ - Mobile Devices
+ */
+
+/*html, body {
+  background-color: #222;
+}*/
+
+
+
+/*
+ * Navbar
+ */
+
+.navbar-inverse {
+  background-color: #111;
+  background-image: none;
+}
+
+.navbar-brand {
+  position: absolute;
+  width: 100%;
+  left: 0;
+  text-align: center;
+  margin: 0 auto;
+}
+
+.navbar-brand h1 {
+  color: #D9D9D9;
+  text-decoration: none;
+  margin: 0;
+  padding: 0;
+  font-size: 22px;
+  font-weight: normal;
+}
+
+.navbar-brand h1 a {
+  color: #D9D9D9;
+}
+
+.navbar-brand h1 a:hover {
+  color: #FFF;
+  text-decoration: none;
+}
+
+.mobile_nav a.btn {
+  padding: 0;
+  color: #DDD;
+  background-color: #222;
+  border: 1px solid #444;
+} 
+
+.mobile_nav a.btn.active {
+  color: #FFF;
+  background-color: #000;
+} 
+
+.mobile_nav_issue_nav {
+  display: inline;
+  position: relative;
+  top: 0px;
+  left: 0px;
+  height: auto;
+  width: auto;
+  background-color: transparent;
+  overflow-x: auto;
+  z-index: 19;
+}
+
+.mobile_nav_issue_nav.show {
+  display: inline !important;
+}
+
+.mobile_nav_issue_nav h4 {
+  display: none;
+}
+
+
+.mobile_nav a.btn span.glyphicon {
+  padding: 8px 12px;
+}
+
+.navbar-nav li.search_toggle a,
+.navbar-nav li.search_toggle a:active,
+.navbar-nav li.search_toggle a:visited {
+  color: #DDD;
+}
+
+.navbar-nav li.search_toggle a:hover {
+  text-decoration: none;
+  color: #FFF;
+}
+
+.navbar-nav li.search_toggle span.glyphicon {
+  margin-right: 7px;
+}
+
+.navbar-nav li.search_toggle a.active {
+  color: #FFF;
+}
+
+
+
+
+/*
+ * Map/Issue viewer
+ */
+
+#viewer #map_container {
+  position: absolute;
+  border: 0px solid red;
+  width: 100%;
+  height: 100%;
+  padding-top: 51px;
+  background-color: #333;
+  z-index: 9;
+}
+
+#viewer #map {
+  width:100%;
+  height:100%;
+  margin:0;
+  padding:0;
+  background-color: #333;
+  z-index: 10;
+  position: relative;
+  top: 0;
+  left: 0;
+}
+
+
+#viewer #map.leaflet_container {
+ /* margin-top: 51px; */
+}
+
+#viewer .leaflet-top {
+  margin-top: 10px;
+}
+
+#viewer.leaflet-right {
+  margin-right: 10px;
+}
+
+
+
+
+
+#viewer .navigation {
+  color: #333;
+  margin: 0px;
+  position: relative;
+  z-index: 20;
+}
+
+#viewer .ui.dropdown.selection {
+  
+}
+
+/* Override semantic-ui */
+#viewer .ui.selection.dropdown {
+  background-color: #222;
+  color: #DDD;
+  font-weight: normal;
+  border: 1px solid #444;
+  padding: 0;
+  // padding-left: 15px;
+  padding-top: 10px;
+  margin-top: 8px;
+  text-align: center;
+  min-height: 2.5em;
+}
+
+#viewer .ui.selection.dropdown:hover {
+  background-color: #000;
+}
+
+#viewer .ui.selection.dropdown .text {
+  font-weight: normal;
+  color: #DDD;
+}
+
+#viewer .ui.selection.dropdown .text:hover {
+  color: #FFF;
+}
+
+#viewer .ui.selection.dropdown.active .text {
+  font-weight: normal;
+  color: #FFF;
+}
+
+/* Dropdown items */
+#viewer .menu .item {
+  font-size: 14px;
+  margin-left: 3px;
+}
+
+/*#viewer .selection.active.visible,*/
+#viewer .menu.transition,
+#viewer .menu.transition:hover,
+#viewer .menu.transition:focus,
+#viewer .menu.transition.visible,
+/*#viewer .selection.active.visible:hover,*/
+#viewer .menu.transition.visible:hover,
+/*#viewer .selection.active.visible:focus,*/
+#viewer .menu.transition.visible:focus {
+  border: 1px solid #444 !important;
+  border-top: 0 !important;
+}
+
+#viewer .menu.transition {
+  border: 1px solid #444 !important;
+  border-top: 0 !important;
+  max-height: 400px !important;
+  box-shadow: 3px 3px 5px 0px rgba(0,0,0,0.5), -3px 0px 5px 0px rgba(0,0,0,0.5);
+}
+
+/* Hide dropdown icon for all dropdowns */
+#viewer i.dropdown.icon {
+  display: none;
+}
+
+/* Publications nav */
+#viewer .publications {
+  min-width: 140px !important;
+  max-width: 160px !important;
+  width: 160px !important;
+}
+
+/* Years Nav */
+#viewer .years {
+  min-width: 65px !important;
+  max-width: 65px !important;
+  width: 65px !important;
+  margin-left: 5px !important;
+}
+
+#viewer .years .text {
+  min-width: 65px !important;
+  max-width: 65px !important;
+  width: 65px !important;
+}
+
+#viewer .years .menu {
+  min-width: 65px !important;
+  max-width: 65px !important;
+  width: 65px !important;
+}
+
+/* Months nav */
+#viewer .months {
+  min-width: 100px !important;
+  max-width: 100px !important;
+  width: 100px !important;
+  margin-left: 5px !important;
+}
+
+#viewer .months .text {
+  min-width: 100px !important;
+  max-width: 100px !important;
+  width: 100px !important;
+}
+
+#viewer .months .menu {
+  min-width: 100px !important;
+  max-width: 100px !important;
+  width: 100px !important;
+}
+
+
+/* Days Nav */
+#viewer .days {
+  min-width: 50px !important;
+  max-width: 50px !important;
+  width: 50px !important;
+  margin-left: 5px !important;
+}
+
+#viewer .days .text {
+  min-width: 50px !important;
+  max-width: 50px !important;
+  width: 50px !important;
+}
+
+#viewer .days .menu {
+  min-width: 50px !important;
+  max-width: 50px !important;
+  width: 50px !important;
+}
+
+
+/* iOS devices */
+/* iPhone + Tablet */
+// @media (max-device-width: 1024px) {
+@media (max-width: 767px) {
+
+  /* Hide leaflet zoom controls */
+  #viewer .leaflet-control-container {
+    display: none;
+  }
+
+}
+
+// @media (max-device-width: 667px) {
+@media (max-width: 767px) {
+
+
+  #viewer .navigation {
+    position: relative;
+    text-align: center;
+    width: 100%;
+    margin: 0;
+    margin-top: 20px;
+  }
+
+  .navbar-brand h1 {
+    font-size: 18px;
+  }
+
+
+  .navbar-inverse .navbar-toggle {
+    color: #DDD;
+    padding: 4px 7px;
+    padding: 0;
+    background-color: #222;
+  }
+
+  .navbar-inverse .navbar-toggle:hover {
+    color: #FFF;
+    background-color: #000;
+  }
+
+  .navbar-inverse .navbar-toggle a {
+    color: #DDD;
+    padding: 4px 7px;
+    background-color: #222;
+  }
+
+  .navbar-inverse .navbar-toggle a:hover {
+    color: #FFF;
+    background-color: #000;
+  }
+
+  .glyphicon-search {
+    background-color: #transparent
+  }
+
+  .glyphicon-search:before {
+    background-color: transparent;
+  }
+
+  .glyphicon-search:hover::before {
+    background-color: transparent;
+  }
+
+  /*
+   * Hide desktop navigation
+   */
+
+  .navbar-nav.navbar-right {
+    display: none;}
+
+  /*
+   * Dropdowns in mobile
+   */
+  .mobile_nav_issue_nav {
+    display: none;
+    position: fixed;
+    top: 50px;
+    left: 0px;
+    height: 100%;
+    width: 100%;
+    background-color: #222;
+    overflow-x: hidden;
+  }
+
+  .mobile_nav_issue_nav.show {
+    display: block;
+  }
+
+  .mobile_nav_issue_nav h4 {
+    display: block;
+    color: #FFF;
+    text-align: center;
+    margin-top: 25px;
+  }
+
+}

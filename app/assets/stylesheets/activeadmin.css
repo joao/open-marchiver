@@ -1,0 +1,8 @@
+
+/* Hide wrong flash messages,
+ * until a workaround is found
+ */
+.admin_dashboard .flashes {
+  display: none;
+}
+

@@ -1,0 +1,11 @@
+# A sample Bowerfile
+# Check out https://github.com/42dev/bower-rails#ruby-dsl-configuration for more options
+# Puts to ./vendor/assets/bower_components
+
+# JavaScript
+asset 'leaflet', '1.0.3'
+asset 'Leaflet.EasyButton', '2.2.0'
+asset 'leaflet-edgebuffer', '1.0.3'
+asset 'jquery', '2.2.4' # Due to ActiveAdmin
+asset 'cleave.js', '0.7.10'
+asset 'x-editable', '1.5.1'

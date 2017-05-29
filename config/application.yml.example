@@ -1,0 +1,61 @@
+# Add configuration values here, as shown below.
+#
+# production:
+#   stripe_api_key: sk_live_EeHnL644i6zo4Iyq4v1KdV9H
+#   stripe_publishable_key: pk_live_9l
+#
+# To use, example:
+# Figaro.env.FACEBOOK_KEY
+# or the more traditional
+# ENV['FACEBOOK_KEY']
+
+
+ARCHIVE_NAME: "Archive X"
+
+UI_LANGUAGE: "pt" # Language of the interface, en or pt
+ELASTICSEARCH_LANGUAGE: "portuguese"
+
+MARCHIVER_URL: 'http://localhost:3000/' # Protocol + host + port  (if necessary) + /
+
+
+
+# Rails
+# to generate run 'rails secret' in the command line
+SECRET_KEY_BASE: "XXXXXXXXXXXXXXXXXXXXXXXXX"
+DEVISE_SECRET_KEY: "XXXXXXXXXXXXXXXXXXXXXXXXX"
+
+# Facebook Auth
+FACEBOOK_KEY: "XXXXXXXXXXXXXXXXXXXXXXXXX"
+FACEBOOK_SECRET: "XXXXXXXXXXXXXXXXXXXXXXXXX"
+
+# API Auth token
+# to generate run 'rails secret' in the command line
+# used in '/app/controllers/api/v1/issues.rb' to upload issues
+API_AUTH_TOKEN: "XXXXXXXXXXXXXXXXXXXXXXXXX"
+
+
+#OCR
+AZURE_OCR_KEY: "XXXXXXXXXXXXXXXXXXXXXXXXX"
+OCR_LANGUAGE: 'pt' # for Azure
+
+# AWS S3
+AWS_S3_KEY: "XXXXXXXXXXXXXXXXXXXXXXXXX"
+AWS_S3_SECRET: "XXXXXXXXXXXXXXXXXXXXXXXXX"
+AWS_S3_REGION: 'eu-central-1' # Frankfurt
+AWS_S3_DOMAIN: ""
+
+
+AWS_S3_BUCKET: 'XXXXXXXXXXXXXXXXXXXXXXXXXv'
+AWS_S3_DIR_ISSUES: 'issues'
+AWS_S3_DIR_PAGES: 'pages'
+AWS_S3_DIR_TILES: 'tiles'
+AWS_S3_DIR_PAGE_CONTENTS: 'contents'
+
+# Default elasticsearch url
+# check https://github.com/ankane/searchkick for
+# other configuration options and services
+ELASTICSEARCH_URL: 'http://127.0.0.1:9200'
+
+
+
+

@@ -1,0 +1,73 @@
+# Files in the config/locales directory are used for internationalization
+# and are automatically loaded by Rails. If you want to use locales other
+# than English, add the necessary files in this directory.
+#
+# To use the locales, use `I18n.t`:
+#
+#     I18n.t 'hello'
+#
+# In views, this is aliased to just `t`:
+#
+#     <%= t('hello') %>
+#
+# To use a different locale, set it with `I18n.locale`:
+#
+#     I18n.locale = :es
+#
+# This would use the information in config/locales/es.yml.
+#
+# To learn more, please read the Rails Internationalization guide
+# available at http://guides.rubyonrails.org/i18n.html.
+
+en:
+  hello: "Hello world! :)"
+  login: "Log in"
+  login_via: 'Login via'
+
+  viewer:
+    search: 'Search'
+    search_action: 'Search'
+    result: 'result'
+    order_by: 'Order by'
+    order_relevancy: 'Relevancy'
+    order_recent: 'Newest'
+    order_older: 'Oldest'
+    page: 'Page'
+    read_more: 'Read more'
+    loading_next_page: 'Loading next page...'
+    loading_next_page_error: 'An error occured, please try to search again.'
+    date_from: 'From'
+    date_between: 'to'
+    select_issue: 'Select issue'
+
+  corrector: 
+    mobile_warning: 'The correction functionality only works on desktop computers, not on mobile phones or tablets.'
+    corrector: 'Corrector'
+    score: "Score"
+    help: "Help"
+    log-out: "Log Out"
+    archive: "Archive"
+    profile: "Profile"
+    page: 'Page'
+    text_correction: 'Text Correction'
+    admin: "Admin"
+    editor_help: 'Press on the lines to correct and approve the text.'
+    editor_toggle_help: "It\'s necessary to approve every line, even it is already corrected. After your approval, the line background becomes yellow."
+    question_missing_lines: 'Any lines missing?'
+    of: 'of'
+    lines_checked: 'lines checked'
+    submit_correction: 'Submit Correction'
+    success: 'Success'
+    lines_checked_and_fixed: 'lines checked and fixed'
+    thank_you: 'Thank you'
+    correct_another_page: 'Correct another page'
+    warning: 'Warning'
+    of_a_total: 'of a total of'
+    lines_present: 'lines present in this page, you have only still checked or approved'
+    lines: 'lines'
+    please_review: 'Please review your editing and if you still have any doubts go to the Help menu'
+    close: 'Close'
+
+  active_admin:
+    powered_by: ""
+

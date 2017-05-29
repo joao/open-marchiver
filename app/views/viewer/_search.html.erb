@@ -1,0 +1,124 @@
+
+<script type="text/javascript">
+  
+  // Loading only here as it relates to search fields that
+  // are not present on the initial Viewer load
+  $(function() {
+
+    // Trigger order options for results
+    $(".search_results_info span#order_older, .search_results_info span#order_recent, .search_results_info span#order_score").on('click', function(){
+
+        $(this).siblings('span').removeClass('active');
+        $(this).addClass('active');
+
+
+        attribute = $(this).data('sort-attribute')
+        direction = $(this).data('sort-direction')
+
+        sort(attribute, direction);
+
+        $("#form_search" ).submit();
+
+    });
+
+    // Filter fields
+    // add hidden input fields with ordering options
+    function sort(attribute, direction) {
+
+      // Clear form attributes
+      $("#form_search input[name='sort_attribute']").remove();
+      $("#form_search input[name='sort_direction']").remove();
+       
+      $('<input>').attr({
+          type: 'hidden',
+          name: 'sort_attribute',
+          value: attribute
+      }).prependTo('#form_search div.term_input');
+
+      $('<input>').attr({
+          type: 'hidden',
+          name: 'sort_direction',
+          value: direction
+      }).prependTo('#form_search div.term_input');
+
+    };
+
+
+    // Format the date input fields
+    $('#from_date, #to_date').toArray().forEach(function(input_field){
+      new Cleave(input_field, {
+        date: true,
+        datePattern: ['d', 'm', 'Y']
+        //datePattern: ['m','Y'] // For month and year
+      });
+    });
+
+    // Reset the results on each search submission
+    $("#form_search").submit(function( event ) {
+      $('.search_results_list').empty();
+    });
+
+    // Submit from on click
+    $("#search a.search_submit").on('click', function(event) {
+      event.preventDefault();
+      $(".search_results_info span#order_score").trigger( "click" );
+      $(".search_results").removeClass('hide');
+    })
+
+    // Submit on any search field enter
+    $('#search input[type=text]').keypress(function(e) {
+      if(e.which == 13) {
+        $("#search a.search_submit").trigger('click');
+      }
+    });
+
+
+  });
+
+</script>
+
+ <div id="search" class="container-fluid">  
+  
+      <div class="search_form container-fluid">
+        <div class="container">
+        <div class="row">
+          <div class="col-md-12">
+          <%= form_for :term, url: search_results_path, method: :get, html: { id: "form_search"}, remote: true do |form| %>
+              <div class="term_input">
+                <%= text_field_tag :term, params[:term], class: 'term_input_field' %>
+                <%= link_to t('viewer.search_action'), '', class: 'btn btn-sm search_submit' %>
+              </div>
+              <div class="date_inputs"> 
+                <span class="from"><%= t('viewer.date_from') %></span> 
+                <%= text_field_tag :from_date, @from_date, class: 'date_input_field' %>
+                 <span class="to"><%= t('viewer.date_between') %></span> 
+                <%= text_field_tag :to_date, @to_date, class: 'date_input_field' %>
+              </div>
+              <% if (@publications.size > 1) %>
+                <%= select_tag :publication_id, options_from_collection_for_select(@publications, "id", "name")%>
+              <% end %>            
+          <% end %>
+          </div>
+        </div> <!-- /.row -->
+        </div> <!-- /.container -->
+      </div> <!-- /.search_form.container fluid -->
+
+
+      <!-- Search Results -->
+      <div class="search_results hide">
+        
+        <!-- Search Results info -->
+        <div class="search_results_info_container container-fluid">
+            <div class="container">
+            <div class="search_results_info row">
+              <p class="results_count">
+              </p>
+              <p class="order_results">
+                <span class="order_by"><%= t('viewer.order_by') %></span> <span id="order_score"  class="order_action" data-sort-attribute="_score" data-sort-direction="desc"><%= t('viewer.order_relevancy') %></span> | <span id="order_older" class="order_action"  data-sort-attribute="date" data-sort-direction="asc"><%= t('viewer.order_older') %></span> | <span id="order_recent" class="order_action" data-sort-attribute="date" data-sort-direction="desc"><%= t('viewer.order_recent') %>
+              </p>
+            </div>
+        </div>
+
+      </div> <!-- /results -->
+
+  </div> <!-- /search -->

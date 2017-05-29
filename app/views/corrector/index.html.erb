@@ -1,0 +1,313 @@
+<script type="text/javascript">
+
+
+  
+// On Document Ready
+$(function() {
+
+    // X-editable setup
+    // turn to inline mode
+    $.fn.editable.defaults.mode = 'inline' ;
+    // Override loading gif to support Bootstrap and Rails asset compiling
+    // $.fn.editableform.loading = '<div class="editableform-loading"></div>';
+    $.fn.editableform.loading = '<div class="glyphicon glyphicon-repeat fast-right-spinner"></div>';
+    // Buttons
+    // $.fn.editableform.buttons = '<button type="submit" class="btn btn-primary btn-sm editable-submit"><i class="glyphicon glyphicon-ok"></i></button><button type="button" class="btn btn-default btn-sm editable-cancel"><i class="glyphicon glyphicon-remove"></i></button>'
+
+    // Draw the issue
+    get_issue(gon.issue.id);
+
+    // Get the lines
+    Corrector['mjson'] = <%= @mjson.html_safe %>
+
+    // A little delay, as the map object
+    // is still being created
+    setTimeout(function(){
+      bounds = Corrector.single_page_bounds;
+      map.setMaxBounds(bounds);
+      map.on('drag', function() {
+        map.panInsideBounds(bounds, { animate: false });
+      });
+      map.options.minZoom = map.getZoom();
+
+      $('.line').editable({
+        clear: false,
+        inputclass: 'line_inline_edit',
+        emptytext: '&nbsp;',
+        savenochange: true,
+        unsavedclass: 'editable-unsaved',
+        onblur: 'ignore'
+      })
+      // .on('shown', function(ev, editable) {
+      //     setTimeout(function() {
+      //         // sets cursor at beginning of line
+      //         editable.input.$input.prop({ selectionStart: 0, selectionEnd:   0 });
+      //         // .select() would select all the text
+      //     },0);
+      //});
+      $('div.user_correction .line').fadeIn('fast');
+    }, 1250);
+
+    // Add to HTML the lines
+    $.each(Corrector.mjson.areas, function( index, area ) {
+       $.each(area.lines, function( index, line ) {
+         $('div.user_correction').append('<div class="line" data-line-id=' + line.id + ' data-line-bbox=' + line.bbox.toString() + '><a href="#" data-type="textarea" data-pk="' + line.id + '">' + line.text + '</a></div>');
+        //console.log(line.bbox.toString());
+       });
+       
+    });
+
+    // Number of lines
+    Corrector['number_of_lines'] = $('div.user_correction .line').size();
+
+    $('.info_total_lines').html(Corrector['number_of_lines']);
+
+    // Updates the line info counter
+    $('#editor_col').children().on('click', function (e) {
+      setTimeout(function() {
+        Corrector['number_of_corrected_lines'] = $('.line.editable-unsaved, .line.editable-empty').size();
+        $('.info_corrected_lines').html(Corrector['number_of_corrected_lines']);
+      },400)
+    });
+
+    // Fix for x-editable savenoshave trigger
+    // it won't save if the clears the field and writes
+    // everything or copy/pastes
+    $(document).on('click', '.editable-submit', function() {
+      line_id = $('.editable-open').data('line-id');
+      setTimeout(function() {
+        $(".line[data-line-id='" + line_id +"']").addClass('editable-unsaved');
+      }, 200)
+    });
+
+
+
+    // Attach onClick event to each line
+    $('div.user_correction .line').on('click', function() {
+
+      line_id = $(this).data('line-id');
+      
+      // Find the line in the mJSON and get the line object 
+      line = getObjects(Corrector.mjson.areas, 'id', line_id)[0];
+
+      // x_left, y_left, x_right, y_right => Azure strucutre
+      //page_lat_x = Corrector.page_x
+      line_top_left = Viewer.rc.unproject([page_lat_px + parseInt(line.bbox[0]) , parseInt(line.bbox[1]) ]);
+      line_bottom_right = Viewer.rc.unproject([page_lat_px + parseInt(line.bbox[2]) , parseInt(line.bbox[3]) ]);
+
+      // set the line bounds
+      var lineBounds = [
+        line_top_left, // Top Left
+        line_bottom_right // Bottom Right
+      ];
+
+      // Remove previous line selection, if that's the case
+      if (Corrector.selected_line) {
+        Corrector.selected_line.remove();
+      }
+
+      // Style of the line highlight on the page viewer
+      var line_highlight_style = {
+        color: "#fff12f",
+        weight: 1,
+        fillOpacity: 0.3,
+      }
+
+      // Draw rectangle and fit to bounds
+      Corrector['selected_line'] = L.rectangle(lineBounds, line_highlight_style)
+      Corrector.selected_line.addTo(map);
+      map.fitBounds(lineBounds, {padding: [30, 30]});
+
+    });
+
+
+    // Make tooltips working
+    $('[data-toggle="tooltip"]').tooltip();
+
+    // On modal close, disable the spinner
+    $('#submission_success, #submission_warning').on('hidden.bs.modal', function () {
+      $('.btn-submit_text-corrections').find('i').removeClass('active');
+    });
+
+    // Submit text corrections functions
+    $('.btn-submit_text-corrections').on('click', function() {
+      
+      // Toggle spinner
+      $(this).find('i').toggleClass('active');
+
+      // Verify that all lines are been checked
+      if (Corrector['number_of_corrected_lines'] != Corrector['number_of_lines']) {
+        lines_checked = false;
+        $('#submission_warning').modal('show');
+        return
+
+      } else {
+        lines_checked = true;
+      }
+
+      // Create correction JSON structure
+      var corrections = {
+        'lines': []
+      }
+
+      // Creates JSON itself
+      $('.line.editable-unsaved').map(function() {
+        lines = corrections['lines'];
+        var line = new Object();
+        line.id = $(this).data('line-id');
+        line.bbox = $(this).data('line-bbox').split(",");
+        line.text = $(this).text()
+        lines.push(line)
+      })
+
+      // Clone original mjson and replace line values
+      var mjson_correction = $.extend(true, {}, Corrector.mjson)
+      $.each(mjson_correction.areas, function( index, area ) {
+        $.each(area.lines, function( index, line ) {
+            // Go through each submitted correct line
+            $.each(corrections.lines, function(c_index, c_line) {
+              // Replace line
+              if (line.id == c_line.id) {
+                line.text = c_line.text
+              }
+            });
+        });
+       
+      });
+
+
+      // Submit Correction
+      $.ajax({
+        url: '/corrector',
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'POST',
+        data: JSON.stringify({correction: mjson_correction}),
+        success: function(data) {
+          console.log("Successful");
+        },
+        failure: function(data) {
+          console.log(data);
+          alert("Unsuccessful");
+        }
+      });
+
+      // Show modal
+      $('#submission_success').modal('show');
+
+
+    })
+
+});
+
+
+
+</script>
+
+
+<%= render "navbar" %>
+
+
+
+<div class="container corrector text_corrector">
+
+
+
+  <div class="row">
+    <div class="col-md-12" id="corrector_header">
+      <h2 class="hide"><%= t('corrector.text_correction') %></h2>
+      <h2 id="mobile_warning"><%= t('corrector.mobile_warning') %></h2>
+    </div>
+
+  </div>
+
+  <div class="row">
+
+    <div class="col-md-6" id="viewer_col">
+        <div id="map_container">
+          <div id="map">
+          </div>
+        </div>
+    </div>
+
+    <div class="col-md-6" id="editor_col">
+
+      <div class="issue_info clearfix">
+        <p class="pull-left"><%= l(@issue.date, format: "%B, %Y") %></p>
+        <p class="pull-right"><%= t('corrector.page') %> <%= @page.number %></p>
+      </div>
+
+      <div class="text_correct">
+        <!--<h3><%= t('corrector.text_correction') %></h3>-->
+        <div class="inline_help clearfix">
+          <p class="pull-left "><%= t('corrector.editor_help') %></p>
+          <p class="pull-right"><a href="#" data-toggle="tooltip" data-placement="left" title="<%= t('corrector.editor_toggle_help') %>"><%= t('corrector.help') %></a></p>
+        </div>
+
+        <div class="user_correction">
+
+        </div>
+
+      </div>
+      <div class="" style="display: none;">
+        <p><%= t('corrector.question_missing_lines') %></p>
+      </div>
+      <div class="lines_info">
+        <p><span class="info_corrected_lines">0</span> <%= t('corrector.of') %> <span class="info_total_lines"></span> <%= t('corrector.lines_checked') %></p>
+      </div>
+
+      <div class="form_send btn-group">
+        <%= button_tag ('<i class="glyphicon glyphicon-refresh gly-spin"></i></span>' + t('corrector.submit_correction')).html_safe, class: "btn btn-primary btn-submit_text-corrections has-spinner" %>
+      </div>
+          
+    <div>
+
+    <!-- Modal for submissions -->
+    <!-- Success -->
+    <div id="submission_success" class="modal">
+       <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-content">
+          <div class="modal-header modal-header-success">
+            <h5 class="modal-title"><%= t('corrector.success') %></h5>
+          </div>
+          <div class="modal-body">
+            <p>
+              <strong><span class="info_corrected_lines">0</span></strong> <%= t('corrector.lines_checked_and_fixed') %>.
+            </p>
+            <p>
+              <%= t('corrector.thank_you') %> <%= current_user.first_name %>! 🙂
+            </p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-success" data-dismiss="modal2"><a href="/corrector"><%= t('corrector.correct_another_page') %></a></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lines Missing -->
+    <div id="submission_warning" class="modal">
+       <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-content">
+          <div class="modal-header modal-header-warning">
+            <h5 class="modal-title"><%= t('corrector.warning') %></h5>
+          </div>
+          <div class="modal-body">
+            <p>
+              <%= current_user.first_name ? current_user.first_name : current_user.name %>, <%= t('corrector.of_a_total') %> <strong><span class="info_total_lines"></span></strong> <%= t('corrector.lines_present') %> <strong><span class="info_corrected_lines">0</span></strong> <%= t('corrector.lines') %>. 😕
+            </p>
+            <p>
+              <%= t('corrector.please_review') %>.<br>
+              <%= t('corrector.thank_you') %>!
+            </p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal"><%= t('corrector.close') %></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+</div>
+
+

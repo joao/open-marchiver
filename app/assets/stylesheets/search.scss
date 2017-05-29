@@ -1,0 +1,401 @@
+/*
+ * - search_form
+ * - search_results_info
+ * - search_results
+ * _ search_result
+ *
+ */
+
+#viewer #search_container {
+  position: absolute;
+  top: 51px;
+  width: 100%;
+  z-index: 200;
+}
+
+#viewer #search {
+  position: relative;
+  padding: 0;
+  background-color: #222;
+  min-height: 45px;
+  z-index: 201;
+}
+
+#search .search_form.container-fluid {
+  width: 100%;
+  background-color: #222;
+  color: #DDD;
+  font-weight: 12px;
+  border: 1px solid #222;
+  position: fixed;
+  top: 51px;
+  z-index: 202;
+}
+
+#search .search_form .container {
+  border: 0px solid red;
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+#search .search_form form {
+  display: block;
+  margin: 0 auto;
+  text-align: center;
+}
+
+#search .search_form form .btn {
+  margin-left: 10px;
+  border: 1px solid #444;
+  color: #DDD;
+  background-color: #222;
+}
+
+#search .search_form form .btn:hover {
+  color: #FFF;
+  background-color: #000;
+}
+
+
+#search .search_form input {
+  padding: 3px;
+  outline: none;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 14px;
+  color: #000;
+}
+
+#search .search_form input.term_input_field {
+  width: 300px;
+  font-size: 14px;
+  margin: 0;
+  padding: 0;
+  padding-left: 6px;
+}
+
+#search .search_form input.date_input_field {
+  max-width: 95px;
+  font-size: 14px;
+  background-color: #FFF;
+  text-align: center;
+  margin: 0;
+  padding: 0;
+}
+
+#search .search_form .term_input {
+  // float: left;
+  display: inline;
+}
+
+#search .search_form .date_inputs {
+  display: inline;
+  margin-left: 75px;
+  // float: left;
+
+}
+
+#search .search_form .date_inputs span.from,
+#search .search_form .date_inputs span.to {
+  color: #ccc;
+  font-size: 12px;
+}
+
+
+
+#search nav span.first,
+#search nav span.last {
+  display: none;
+}
+
+/*
+ * Search Results info
+ *
+ */
+
+#search .search_results_info_container.container-fluid {
+  width: 100%;
+  background-color: #FFF;
+  border: 0px solid red;
+  box-shadow: 0 4px 2px -2px #DDD;
+  position: fixed;
+  top: 117px;
+  z-index: 202;
+  margin: 0;
+  padding: 0;
+}
+
+#search .search_results_info {
+  margin: 10px 0px;
+  z-index: 202;
+  border: 0px solid purple;
+}
+
+#search .search_results_info p {
+  margin-bottom: 0;
+}
+
+#search .search_results_info p.results_count {
+  display: inline-block;
+  float: left;
+}
+
+
+#search .search_results_info p.order_results {
+  display: inline-block;
+  float: right;
+}
+
+#search .search_results_info span.order_by {
+  color: #777;
+  font-size: 12px;
+}
+
+
+#search .search_results_info span.order_action {
+
+}
+
+#search .search_results_info span.order_action.active {
+  font-weight: bold;
+}
+
+#search .search_results_info span.order_action.active:hover {
+  text-decoration: none;
+}
+
+
+#search .search_results_info span.order_action:hover {
+  text-decoration: underline;
+  cursor: pointer;
+
+
+}
+
+/*
+ * Search Results List
+ *
+ */
+  
+#search .search_results {
+  background-color: #FFF;
+  border: 0px solid orange;
+  z-index: 18;
+  margin-top: 40px;
+}
+
+
+#search .search_results_list {
+  border: 0x solid purple;
+  margin-top: 100px;
+  padding-top: 30px;
+}
+
+
+/*
+ * Search result
+ */
+
+#search .result {
+  float: left;
+  height: 520px;
+  overflow: hidden;
+  border: 0px solid blue;
+  margin-bottom: 20px;
+}
+
+#search .result .page_thumbnail {
+  height: 300px;
+  display: block;
+  margin-bottom: 15px;
+  position: relative;
+  overflow: hidden;
+  border: 0px solid green;
+}
+
+#search .result .page_thumbnail img {
+  transition: all 0.25s;
+  max-width: 100%;
+  border: 0px solid yellow;
+}
+
+#search .result img:hover {
+  transform: scale(1.025);
+  opacity: 0.7;
+}
+
+
+#search .result h5 {
+  font-size: 18px;
+  margin: 0;
+}
+
+#search .result p.page_number {
+  color: #777;
+  font-size: 12px;
+  margin-top: 3px
+}
+
+
+#search .result p.result_text {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 14px;
+  text-align: left;
+  margin-bottom: 0px;
+}
+
+#search .result p.result_text em {
+  background-color: #FFFF8F;
+  font-style: normal;
+}
+
+
+#search .result span.read_more {
+  display: inline;
+  text-align: left;
+  font-size: 14px;
+  margin: 0;
+  padding: 0;
+}
+
+
+#search .result span.read_more a {
+ /* inherit from bootstrap */
+}
+
+
+#search .result span.read_more a:hover {
+  /* inherit from bootstrap */
+}
+
+/*
+ * Search results spinner bottom
+ */
+#search .search_pagination {
+  margin-top: 80px;
+  margin-bottom: 80px;
+  display: block;
+  clear: both;
+  width: 100%;
+  border: 0px solid red;
+  text-align: center;
+  height: 50px;
+}
+
+#search .search_pagination .loader {
+  border: 5px solid #ccc;
+  -webkit-animation: spin 1s linear infinite;
+  animation: spin 1s linear infinite;
+  border-top: 5px solid #333;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  text-align: center;
+  margin: 0 auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Desktop */
+@media (max-width: 1200px) {
+
+  #search .result {
+    border: 0px solid red;
+  }
+
+}
+
+/* Result height hack
+ * if extract length is changed this has to be changed also
+ */
+@media (min-width: 770px) and (max-width: 1200px) {
+
+  #search .result {
+    border: 0px solid red;
+    height: 540px;
+  }
+
+}
+
+/* Tablet */
+@media (max-width: 970px) {
+
+  #search .result {
+  }
+
+}
+
+/* Mobile */
+@media (max-width : 767px) {
+
+  #search .result {
+    text-align: center;
+    margin-bottom: 20px;
+    height: 520px;
+  }
+
+  #search .result p.read_more {
+    text-align: center;
+    display: block;
+  }
+
+  // Search container
+  #search .search_form.container-fluid {
+    top: 50px;
+  }
+
+  // Search inputs
+  #search .search_form input {
+    border-radius: 0;
+  }
+
+  #search .search_form .term_input {
+    display: block;
+  }
+
+  #search .search_form input.term_input_field {
+    width: 150px;
+  }
+
+  #search .search_form .date_inputs {
+    display: block;
+    margin-left: 0px;
+    margin-top: 20px;
+  }
+
+  #search .search_form .date_inputs span.from,
+  #search .search_form .date_inputs span.to {
+    font-size: 11px;
+  }
+
+  #search .search_form .date_inputs input.date_input_field {
+    padding: 3px;
+    font-size: 12px;
+    max-width: 80px;
+  }
+
+  // Search results info
+  #search .search_results_info_container.container-fluid {
+    top: 164px;
+  }
+
+  #search p.results_count {
+    font-size: 11px;
+  }
+
+  #search p.order_results {
+    font-size: 11px;
+  }
+
+  #search span.order_by {
+    display: none;
+  }
+
+  // Search results
+  #search .search_results {
+    margin-top: 140px;
+  }
+
+}

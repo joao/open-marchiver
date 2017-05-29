@@ -1,0 +1,661 @@
+// Place all the behaviors and hooks related to the matching controller here.
+// All this logic will automatically be available in application.js.
+//
+//= require leaflet
+//= require leaflet-rastercoords
+//= require Leaflet.EasyButton
+//= require leaflet-edgebuffer
+//
+
+// Viewer Setup
+Viewer = {};
+Viewer.language = '<%= ENV['UI_LANGUAGE'] %>';
+Viewer.current_publication_id = '';
+Viewer.current_publication_frequency = '';
+Viewer.current_publication = {};
+Viewer.current_page = 1
+Viewer.current_year_issues = {};
+Viewer.api_endpoint = '/api/v1/';
+Viewer.tiles_directory = 'http://<%= ENV['AWS_S3_BUCKET'] %>.s3.amazonaws.com/tiles/'
+Viewer.first_load = true;
+
+Corrector = {};
+Corrector.single_page_bounds = [];
+
+timeout_timer = 100;
+
+
+// Find objects in JSON
+function getObjects(obj, key, val) {
+		var objects = [];
+		for (var i in obj) {
+				if (!obj.hasOwnProperty(i)) continue;
+				if (typeof obj[i] == 'object') {
+						objects = objects.concat(getObjects(obj[i], key, val));
+				} else if (i == key && obj[key] == val) {
+						objects.push(obj);
+				}
+		}
+		return objects;
+}
+
+// Months strings setup, to display issues' months in portuguese and english
+// add more if necessary
+var months_relationships = {
+	"en": {
+		"01" : "January",
+		"02" : "February",
+		"03" : "March",
+		"04" : "April",
+		"05" : "May",
+		"06" : "June",
+		"07" : "July",
+		"08" : "August",
+		"09" : "September",
+		"10" : "October",
+		"11" : "November",
+		"12" : "December"
+	},
+	"pt": {
+		"01" : "Janeiro",
+		"02" : "Fevereiro",
+		"03" : "Março",
+		"04" : "Abril",
+		"05" : "Maio",
+		"06" : "Junho",
+		"07" : "Julho",
+		"08" : "Agosto",
+		"09" : "Setembro",
+		"10" : "Outubro",
+		"11" : "Novembro",
+		"12" : "Dezembro"
+	}
+};
+
+
+
+// Parse Months function
+function parseMonths(months) {
+
+	months_strings = [];
+
+
+	$.each(months, function(index, month ) {
+		months_strings.push(months_relationships[Viewer.language][month]);
+	});
+
+	return months_strings.join(', ');
+};
+
+
+// Draw Map function
+Viewer.draw_map = function(issue) {
+
+	if (Viewer.current_publication_frequency == 'monthly') {
+		document.title = Viewer.current_publication.name + ' - ' + Viewer.current_month + '/' + Viewer.current_year;
+	}
+
+	// Workaround for white lines bug in webkit
+	//The other alternative is draw in canvas...
+	(function(){
+		var originalInitTile = L.GridLayer.prototype._initTile
+		L.GridLayer.include({
+				_initTile: function (tile) {
+						originalInitTile.call(this, tile);
+
+						var tileSize = this.getTileSize();
+
+						tile.style.width = tileSize.x + 1 + 'px';
+						tile.style.height = tileSize.y + 1 + 'px';
+				}
+		});
+	})()
+
+	// Enable remove current map and draw another, with other tiles
+	$("#map_container #map").remove();
+	$("#map_container").prepend('<div id="map"></div>')
+
+	// For pages navigation
+	var number_of_pages = issue.number_of_pages;
+	var page_width = issue.page_width;
+	var page_height = issue.height;
+	var page_spacing = 100;
+	var current_page = 1
+
+	var pages_widths_and_heights = issue.pages_widths_and_heights;
+	var pages_widths = pages_widths_and_heights.map(function(value, index) {return value[0]; });
+	var pages_heights = pages_widths_and_heights.map(function(value, index) {return value[1]; });
+
+
+	var minZoom = issue.minZoom,
+		maxZoom = issue.maxZoom,
+		img = [
+			issue.width,  // original width of image
+			issue.height   // original height of image
+		];
+
+	// Variable minZoom, according to maxZoom
+	// But I'm generating all the tiles for the inferior zoom,
+	// could save space by deleting them
+	if (maxZoom > 5) {
+		minZoom = maxZoom - 5
+	} else {
+		minZoom = maxZoom - 4
+	}
+
+	// Set maxNativeZoom
+	// Goes over one zoom level, for issues
+	// that the age height is inferior than 1280px.
+	// Gets a bit blurry, but is better than
+	// leaving just the small type.
+	maxNativeZoom = maxZoom
+	if (page_height < 1280) {
+		maxZoom = maxZoom + 1
+	}
+
+	// create the map
+	map = L.map('map',{
+			zoomControl: false,
+			attributionControl: false,
+			zoomSnap: 0.1,
+			zoomDelta: 1,
+			intertia: false
+	});
+
+	// Zoom on the top right corner
+	new L.Control.Zoom({ position: 'topright' }).addTo(map);
+
+	// assign map and image dimensions
+	var rc = new L.RasterCoords(map, img);
+	Viewer.rc = rc;
+
+	//var mapSize = map.getSize();
+
+	// Remove this to be able to pan outside de viewport
+	rc.setMaxBounds();
+
+
+	// set the view on the center of the page append
+	//map.setView(rc.unproject([img[0]/2, img[1]/2]), 6);
+	//map.setView(rc.unproject([1, img[1]/2]), setZoomLevel);
+	map.setView(
+		rc.unproject([img[0]/2, img[1]/2]),
+		4 // starting zoom level
+	);
+
+	// Set bounds
+	var bottomRight = rc.unproject([ img[0], img[1] ]); // southWest
+	var topLeft = rc.unproject([ 0, 0] ); // northEast
+	var bounds = L.latLngBounds(bottomRight, topLeft);
+
+	tiles_directory = Viewer.tiles_directory + issue.id;
+	tiles_format = '/{z}/{y}/{x}.png'; // VIPS format
+
+
+	// Load tile layer
+	L.tileLayer( tiles_directory + tiles_format, {
+		minZoom: minZoom,
+		maxNativeZoom: maxNativeZoom,
+		maxZoom: maxZoom,
+		noWrap: true,
+		bounds: bounds,
+		edgeBufferTiles: 1
+	}).addTo(map);
+
+
+
+	// Fit map to container height
+	first_page_bounds = [ rc.unproject([0,0]), rc.unproject([1, page_height])  ]
+	// if there is no page selected
+	if (!gon.issue.page) {
+		// 1px width + full height
+		// Fit to container height
+		map.fitBounds(first_page_bounds);
+	}
+
+	// Add button to fit to view
+	L.easyButton('<span class="glyphicon glyphicon-fullscreen"></span>',
+		function() {
+			map_center = rc.project(map.getCenter());
+			current_bounds = [
+			 	rc.unproject([map_center.x, 0]),
+				rc.unproject([map_center.x + 1 , page_height])
+			]
+			map.fitBounds(current_bounds);
+		}, {
+			position: 'topright'
+		}
+	).addTo(map);
+
+	// Get current page trick
+	// the current map x position, latitude
+	// map_center = rc.project(map.getCenter()).x;
+
+	// Page navigation prototype
+	L.go_to_page = function(page_number) {
+		
+		page_number_offset = parseInt(page_number)-1
+	
+		// Remove lodash dependency
+		//pages_widths2 = _.sum(pages_widths.slice( 0, page_number_offset  ));
+		// Fix for .reduce function not working on a 0 value, need to check this for the first page
+		if (page_number_offset != 0) {
+			pages_left_widths_sum = pages_widths.slice( 0, page_number_offset  ).reduce(function(a, b) {return a+b;} )
+		} else {
+			pages_left_widths_sum = 0
+		}
+		page_lat_px = ( pages_left_widths_sum + (page_spacing * page_number_offset ) );
+
+		Corrector['page_x'] = page_lat_px;
+
+		map.setView(rc.unproject([
+			page_lat_px,
+			img[1]/2]), map.getZoom(), {
+				"animate": true,
+				"pan": {
+					"duration": 0.5
+				}
+			}
+			);
+
+
+		// Page bounds
+		top_left = rc.unproject([page_lat_px, 0]);
+		top_right = rc.unproject([page_lat_px + pages_widths[page_number_offset], 0]);
+		bottom_right = rc.unproject([page_lat_px + pages_widths[page_number_offset], pages_heights[page_number_offset]]);
+		bottom_right_zoomed_top = rc.unproject([page_lat_px + pages_widths[page_number_offset], pages_heights[page_number_offset]/2]);
+		bottom_left = rc.unproject([page_lat_px, pages_heights[page_number_offset]]);
+
+		// page points debug
+		// var marker1 = L.marker(top_left).addTo(map);
+		// var marker2 = L.marker(bottom_right).addTo(map);
+		// var marker3 = L.marker(bottom_left).addTo(map);
+		// var marker4 = L.marker(top_right).addTo(map);
+
+		// Page bounds to hightlight
+		// x, y
+		var rectBounds = [
+			top_left, // Top Left
+			bottom_right // Bottom Right
+			];
+
+		// Page top zoomed
+		var rectBoundsZoomedTop = [
+			top_left, // Top Left
+			bottom_right_zoomed_top // Bottom Right zoomed
+		]
+
+		// Draw Rectangle
+		L.rectangle(rectBounds, {color: "#fff12f", weight: 1, opacity: 0.5, fill: true, fillOpacity: 0.2, className: "page_focus"}).addTo(map);
+
+		setTimeout(function(){
+			$(".page_focus").animate({ opacity: 0 }, 500, function() {
+				// Animation complete.
+			});
+		}, 500);
+
+
+
+		// Fit to container
+		map.fitBounds(rectBoundsZoomedTop);
+		// map.fitBounds(rectBounds)
+
+		Corrector.single_page_bounds = rectBounds;
+
+		// For single view of a page, for corrections
+		//map.setMaxBounds(rectBounds);
+		// Only show one page
+		
+		// Set a min.zoom
+		//map.options.minZoom = map.getZoom();
+
+
+
+		// If there is a search term
+		if (getUrlParameter('highlighted_strings')) {
+
+			highlighted_strings = getUrlParameter('highlighted_strings').split(',');
+
+
+			// Highligh function
+			highlight_search_terms(highlighted_strings)
+
+
+		} // end of highlight the search word
+
+		// reset gon.issue.page
+		// is this needed?!?!?
+		gon.issue.page = null;
+
+
+	} // end of go to page
+
+
+}; // End of draw_map function
+
+
+
+
+// Publications
+function get_publications() {
+	$.getJSON(Viewer.api_endpoint + "publications", function( data ) {
+
+		publications_data = data
+
+		// Stop everything if there are no publications
+		if (publications_data.length == 0) {
+			return false;
+		}
+
+		// Hide publications dropdown if there is only one publication
+		if (publications_data.length == 1) {
+			$(".publications").hide();
+		} else {
+			$(".publications").show();
+		}
+
+		var publications = $();
+
+		$.each(publications_data, function( publication ) {
+			publications = publications.add('<option data-publication_frequency=' + publications_data[publication].frequency +  ' value=' + publications_data[publication].id +  '>' + publications_data[publication].name + '</option>');
+		});
+
+		$(".publications select").html(publications);
+
+
+		Viewer.current_publication_id = publications_data[0].id;
+		Viewer.current_publication_frequency = publications_data[0].frequency;
+		Viewer.current_publication = publications_data[0];
+
+		setTimeout(function() { 
+			 $(".publications").dropdown("set selected", publications_data[0].name);
+			 get_years(Viewer.current_publication_id);
+		}, timeout_timer);
+	});
+};
+
+// Years
+function get_years(publication_id) {
+
+	$.getJSON(Viewer.api_endpoint + "publications/" + publication_id + "/years", function( data ) {
+
+		// Check if the publication has issues
+		if (data.length == 0) {
+			//console.log('This publication has no issues.');
+			$('#map').html('');
+			$('.years.ui.dropdown').hide();
+			$('.months.ui.dropdown').hide();
+			$('.days.ui.dropdown').hide();
+
+		}
+
+		// If there are issues, let's build them
+		if (data.length > 0) { 
+
+			// Show the dropdowns
+			$('.years.ui.dropdown').show();
+			$('.months.ui.dropdown').show();
+			if (Viewer.current_publication.frequency != 'monthly') {
+				$('.days.ui.dropdown').show();
+			};
+
+			// Create the years HTML to place inside the dropdown
+			var publication_years = $();
+			$.each(data, function( year ) {
+				 publication_years = publication_years.add('<option value=' + data[year] +  '>' + data[year] + '</option>');
+			});
+
+			// Add the years to the dropdown
+			$(".years select").html(publication_years);
+
+			if (Viewer.first_load && gon.issue.date.year) {
+				Viewer.current_year = gon.issue.date.year
+				// Execute this if the year is the last one
+				// and the first one in the first one.
+				// As it is already selected the dropdown set selected below
+				// won't trigger.
+				if ($(".years").dropdown('get value') == Viewer.current_year) {
+					get_year_issues(Viewer.current_publication_id, Viewer.current_year); 
+				}
+			} else {
+				Viewer.current_year = data[data.length-1];
+			}
+			setTimeout(function() {
+				$(".years").dropdown("set selected", Viewer.current_year );
+			}, timeout_timer);
+
+
+		} // end of iterating through years
+
+
+	}); 
+
+}
+
+
+
+// Get Issues of a Publication's year
+// Perhaps a bit too much for a daily newspaper...
+function get_year_issues(publication_id, year) {
+	$.getJSON(Viewer.api_endpoint + "issues/" + publication_id + "/year/" + year, function( data ) {
+
+		// Remove lodash dependency
+		//months_sorted = _.sortBy(data['months'], 'month');
+		months_sorted = data['months'].sort(function(a, b) {
+			return parseInt(a.month) - parseInt(b.month);
+		});
+
+		var months = $()
+		$.each(months_sorted, function( month_index ) {
+			month = months_sorted[month_index]['month'];
+			month_array = [];
+			month_array.push(month);
+			months = months.add('<option value=' + month +  '>' + parseMonths( month_array ) + '</option>')
+		})
+
+
+		$(".months select").html(months);
+
+		if (Viewer.first_load && gon.issue.date.month) {
+			Viewer.current_month = gon.issue.date.month;
+		} else {
+			Viewer.current_month = months_sorted[0].month;
+		}
+		Viewer.current_year_issues = data;
+
+		setTimeout(function() {
+			 $(".months").dropdown("set selected", Viewer.current_month)
+		 }, timeout_timer);
+
+
+	}).then(function() {
+		// Populates the days dropdown
+		get_days();
+	});
+
+
+};
+
+
+function get_days() {
+	current_month_issues = getObjects(Viewer.current_year_issues, 'month', Viewer.current_month);
+
+
+	// If the publication is monthly
+	// And there are more than two issues in the same month
+	if (Viewer.current_publication.frequency == 'monthly' && current_month_issues[0].issues.length > 1 ) {
+		$('.days.ui.dropdown').show();
+	} else {
+		$('.days.ui.dropdown').hide();
+	}
+
+	month_issues = current_month_issues[0].issues;
+
+	var days = $()
+	$.each(month_issues, function( issue ) {
+		days = days.add('<option value=' + month_issues[issue]['id'] +  '>' + month_issues[issue]['day'] + '</option>')
+	})
+
+	$(".days select").html(days);
+
+	if (Viewer.first_load && gon.issue.id) {
+		 Viewer.current_issue = gon.issue.id;
+
+	} else {
+		 Viewer.current_issue = month_issues[0]['id']
+	}
+
+	setTimeout(function() {
+		$(".days").dropdown("set selected", Viewer.current_issue);
+	}, timeout_timer);
+
+	setTimeout(function() {
+		get_issue(Viewer.current_issue);
+	}, timeout_timer);
+
+};
+
+// Retrieve issue
+function get_issue(issue_id) {
+	$.getJSON(Viewer.api_endpoint + "issues/" + issue_id, function( data ) {
+
+		// if search is visible, hide it
+		if ( $('#search_container #search').length ) {
+			$('#search').remove();
+			$('#map_container').show();
+		};
+
+		Viewer.draw_map(data);
+
+		if (Viewer.first_load) {
+			if (gon.issue.page) {
+				if (gon.issue.page > gon.issue.number_of_pages ) {
+					gon.issue.page = gon.issue.number_of_pages
+				} else if (gon.issue.page <= 0) {
+					gon.issue.page = 1
+				}
+
+				//L.go_to_page(gon.issue.page)
+				// Delay to wait for the Viewer.draw_map()
+				setTimeout(function() {
+					L.go_to_page(gon.issue.page)
+				}, timeout_timer);
+			
+			};
+		} else {
+			// Verify if we aren't loading a page directly from the url,
+			// as in a direct page link or clicking on a search result
+			if (!gon.issue.page) {
+				history.pushState({issue: Viewer.current_issue}, null, '/' + Viewer.current_issue);
+			}
+		}
+
+		// if (Viewer.first_load && !gon.issue.page) {
+		//  	history.pushState({issue: Viewer.current_issue}, null, '/' + Viewer.current_issue);
+		// }
+
+		Viewer.first_load = false;
+
+	});
+};
+
+
+
+// Get URL Parameters
+var getUrlParameter = function getUrlParameter(sParam) {
+    var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+        sURLVariables = sPageURL.split('&'),
+        sParameterName,
+        i;
+
+    for (i = 0; i < sURLVariables.length; i++) {
+        sParameterName = sURLVariables[i].split('=');
+
+        if (sParameterName[0] === sParam) {
+            return sParameterName[1] === undefined ? true : sParameterName[1];
+        }
+    }
+};
+
+
+
+// Search term highlight
+function highlight_search_terms(highlighted_strings) {
+
+	// TODO
+	// - possibility to highlight word besides line
+
+	// Get mJSON
+	api_url = Viewer.api_endpoint + "issues/" + gon.issue.id + "/page/" + gon.issue.page + "/mjson"
+
+	var lines = new Array;// Array to stored the found lines with the highligthed strings
+	var get_highlight_lines = $.getJSON( api_url, function( data ) {
+		json_object = JSON.parse(data)
+
+		//console.log(highlighted_strings);
+
+		$.each(highlighted_strings, function(index, value) {
+			lines.push( searchHighlightedStrings(json_object, 'text', value) )
+		})
+		//lines = searchHighlightedStrings(json_object, 'text', highlighted_string)
+		//console.log( words );
+	});
+
+	// On get mJSON complete, draw highlights
+	get_highlight_lines.complete(function() {
+
+		// Flattern array of highlighted words
+		var lines_flat_array = [].concat.apply([], lines);
+
+		// Might be useful in the future to only highlight the word
+		//higlighted_word_length = highlighted_word.length
+
+		// Go through each line where the highlighted word was found
+		$.each(lines_flat_array, function(index, value) {
+
+			// if Azure
+			// x_left, y_left, x_right, y_right
+			line_x_left = parseInt(value['bbox'][0])
+			line_y_left = parseInt(value['bbox'][1])
+			line_x_right = parseInt(value['bbox'][2])
+			line_y_right = parseInt(value['bbox'][3])
+
+			line_top_left = Viewer.rc.unproject([page_lat_px + line_x_left, line_y_left]);
+			line_bottom_right = Viewer.rc.unproject([page_lat_px + line_x_right, line_y_right]);
+
+			// For debugging
+			//L.marker(line_top_left).addTo(map);
+			//L.marker(line_bottom_right).addTo(map);
+
+			var lineBounds = [
+				line_top_left, // Top Left
+				line_bottom_right // Bottom Right
+				];
+
+			L.rectangle(lineBounds, {color: "fff12f", weight: 1, opacity: 0.25, fillColor: "#fff12f", fill: true, fillOpacity: 0.4, className: "word_highlight"}).addTo(map);
+
+		});
+
+	})
+
+}	
+
+
+
+// Find strings in mJSON
+function searchHighlightedStrings(obj, key, val) {
+		var objects = [];
+		var highlighted_string = new RegExp(val, 'gi');
+		for (var i in obj) {
+				if (!obj.hasOwnProperty(i)) continue;
+				if (typeof obj[i] == 'object') {
+						objects = objects.concat(searchHighlightedStrings(obj[i], key, val));
+				//} else if (i == key && obj[key] == val ) {
+				} else if (i == key && obj[key].match(highlighted_string) ) {
+						objects.push(obj);
+				}
+		}
+		return objects;
+}
+
+

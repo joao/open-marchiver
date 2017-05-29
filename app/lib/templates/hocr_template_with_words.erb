@@ -1,0 +1,36 @@
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <meta name='ocr-system' content='Azure Computer Vision' />
+    <meta name='ocr-capabilities' content='ocr_page ocr_carea ocr_par ocr_line ocrx_word'/>
+    <meta name="ocr-langs" content="<%= language %>" />
+  </head>
+  <body>
+    <!-- Page -->
+    <div class="ocr_page" id="page_1" title='bbox 0 0 2481 3510'>
+      <!-- Area -->
+      <% text_regions.each do |region| %>
+        <% r_bbox = calc_bbox(region['boundingBox']) %>
+      <div class='ocr_carea' id='block_<%= id_block = id_block + 1 %>' title="bbox <%= r_bbox.join(' ') %>">
+        <!-- Paragraph -->
+        <p class='ocr_par' id='par_<%= id_par = id_par + 1 %>' title="bbox <%= r_bbox.join(' ') %>">
+          <!-- Lines -->
+          <% region['lines'].each do |line| %>
+            <% l_bbox = calc_bbox(line['boundingBox']) %>
+          <span class="ocr_line" id="line_<%= id_line = id_line + 1 %>" title="bbox <%= l_bbox.join(' ') %>">
+            <!-- Words -->
+            <% line['words'].each do |word| %>
+              <% w_bbox = calc_bbox(word['boundingBox']) %>
+            <span class='ocrx_word' id='word_<%= id_word = id_word + 1 %>' title='bbox <%= w_bbox.join(' ') %>'><%= word['text'] %></span>
+            <% end %>
+          </span><!-- /ocr_line -->
+          <% end %>
+        </p><!-- /ocr_par -->
+      </div><!-- /ocr_carea -->
+      <% end %>
+    </div><!-- /ocr_page -->
+  </body>
+</html>
