@@ -160,7 +160,7 @@ Feel free to use this project in your archives.
 Please report any issues (which certainly there are some bugs) you find in this first release and contribute back.
 
 ## License
-Marchiver is licensed under an [GPLv3](https://choosealicense.com/licenses/gpl-3.0/) license.
+Marchiver is licensed under an [MIT](https://choosealicense.com/licenses/mit/) license.
 
 ## Copyright
 
