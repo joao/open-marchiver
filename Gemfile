@@ -65,7 +65,7 @@ gem 'daemons', '~> 1.2.4'
 gem 'figaro', '~> 1.1.1' # manage development credentials
 
 # API build
-gem 'grape', '~> 0.19.2'
+gem 'grape', '~> 1.1.0'
 gem 'grape-active_model_serializers', '~> 1.5.1'
 gem 'active_model_serializers', "~> 0.10.0"
 gem 'api-pagination', '~> 4.5.2'
